@@ -34,3 +34,5 @@
 
 *.iml
 .idea/
+
+docker-compose.yml
