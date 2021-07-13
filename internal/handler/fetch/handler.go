@@ -2,9 +2,9 @@ package fetch
 
 import (
 	"encoding/json"
-	"getir-case/internal/db"
 	"getir-case/internal/handler"
 	"getir-case/internal/model/fetch"
+	storage "getir-case/internal/service/persistent"
 	"getir-case/internal/util"
 	"github.com/go-playground/validator"
 	"github.com/julienschmidt/httprouter"
@@ -28,7 +28,7 @@ func Post(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	database, err := db.NewDb()
+	database, err := storage.NewDb()
 	if err != nil {
 		rb.JsonResponse(http.StatusBadRequest, fetch.NewErrorResponse(err))
 		return

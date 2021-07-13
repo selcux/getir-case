@@ -1,13 +1,13 @@
 package util
 
 import (
-	"getir-case/internal/db"
 	"getir-case/internal/model/fetch"
+	persistent2 "getir-case/internal/service/persistent"
 	"github.com/pkg/errors"
 	"time"
 )
 
-func RequestToDataQuery(model fetch.Request) (*db.DataQuery, error) {
+func RequestToDataQuery(model fetch.Request) (*persistent2.DataQuery, error) {
 	startDate, err := time.Parse("2006-01-02", model.StartDate)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid date format")
@@ -18,7 +18,7 @@ func RequestToDataQuery(model fetch.Request) (*db.DataQuery, error) {
 		return nil, errors.Wrap(err, "invalid date format")
 	}
 
-	return &db.DataQuery{
+	return &persistent2.DataQuery{
 		StartDate: startDate,
 		EndDate:   endDate,
 		MinCount:  model.MinCount,
@@ -26,7 +26,7 @@ func RequestToDataQuery(model fetch.Request) (*db.DataQuery, error) {
 	}, nil
 }
 
-func RecordsToResponses(records []db.DataQueryRecord) []fetch.RecordResponse {
+func RecordsToResponses(records []persistent2.DataQueryRecord) []fetch.RecordResponse {
 	responses := make([]fetch.RecordResponse, 0)
 
 	for _, record := range records {
