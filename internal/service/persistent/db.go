@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -12,7 +11,7 @@ import (
 )
 
 type Query interface {
-	Connect() error
+	init() error
 	Get(dq *DataQuery) ([]DataQueryRecord, error)
 	Disconnect() error
 }
@@ -25,7 +24,7 @@ type db struct {
 
 func NewDb() (Query, error) {
 	db := &db{}
-	err := db.Connect()
+	err := db.init()
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +32,7 @@ func NewDb() (Query, error) {
 	return db, nil
 }
 
-func (d *db) Connect() error {
+func (d *db) init() error {
 	uri := os.Getenv("MONGO_URI")
 	log.Debugf("connecting to: %s", uri)
 
@@ -70,46 +69,8 @@ func (d *db) Get(dq *DataQuery) ([]DataQueryRecord, error) {
 	if err := client.Ping(d.ctx, readpref.Primary()); err != nil {
 		return nil, errors.Wrap(err, "unable to ping the primary")
 	}
-	/*
-		match1 := bson.D{{"$match", bson.D{
-			{"createdAt", bson.D{
-				{"$gte", bson.D{
-					{"$dateFromString", bson.D{
-						{"dateString", dq.StartDate},
-					}}}},
-				{"$lt", bson.D{
-					{"$dateFromString", bson.D{
-						{"dateString", dq.EndDate},
-					}}}},
-			}}}}}
-	*/
-	match1 := bson.D{{"$match", bson.D{
-		{"createdAt", bson.D{
-			{"$gte", dq.StartDate},
-			{"$lt", dq.EndDate},
-		}}}}}
 
-	project := bson.D{{"$project", bson.D{
-		{"_id", false},
-		{"key", true},
-		{"createdAt", true},
-		{"totalCount", bson.D{
-			{"$sum", "$counts"},
-		}}}}}
-
-	match2 := bson.D{{"$match", bson.D{
-		{"totalCount", bson.D{
-			{"$gte", dq.MinCount},
-			{"$lt", dq.MaxCount},
-		}},
-	}}}
-
-	/*
-		opts := options.Aggregate()
-		opts.SetAllowDiskUse(true)
-		opts.SetBatchSize(5)
-	*/
-	showInfoCursor, err := collection.Aggregate(d.ctx, mongo.Pipeline{match1, project, match2})
+	showInfoCursor, err := collection.Aggregate(d.ctx, aggregateRecordsWithCountSum(dq))
 	if err != nil {
 		return nil, errors.Wrap(err, "unexpected behavior in query")
 	}
