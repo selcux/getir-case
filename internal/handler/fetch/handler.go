@@ -7,11 +7,21 @@ import (
 	storage "getir-case/internal/service/persistent"
 	"getir-case/internal/util"
 	"github.com/go-playground/validator"
-	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
-func Post(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+type Handler struct {
+}
+
+func NewHandler() *Handler {
+	return &Handler{}
+}
+
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.post(w, r)
+}
+
+func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 	var request fetch.Request
 	rb := handler.NewResponseBuilder(w)
 
