@@ -3,10 +3,12 @@ package fetch
 import (
 	"encoding/json"
 	"getir-case/internal/handler"
+	"getir-case/internal/model"
 	"getir-case/internal/model/fetch"
 	storage "getir-case/internal/service/persistent"
 	"getir-case/internal/util"
 	"github.com/go-playground/validator"
+	"github.com/pkg/errors"
 	"net/http"
 )
 
@@ -18,7 +20,15 @@ func NewHandler() *Handler {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.post(w, r)
+	rb := handler.NewResponseBuilder(w)
+
+	switch r.Method {
+	case http.MethodPost:
+		h.post(w, r)
+	default:
+		err := errors.New("not found")
+		rb.JsonResponse(http.StatusNotFound, model.NewErrorResponse(err))
+	}
 }
 
 func (h *Handler) post(w http.ResponseWriter, r *http.Request) {

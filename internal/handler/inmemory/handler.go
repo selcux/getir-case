@@ -3,6 +3,7 @@ package inmemory
 import (
 	"encoding/json"
 	"getir-case/internal/handler"
+	"getir-case/internal/model"
 	"getir-case/internal/model/inmemory"
 	storage "getir-case/internal/service/inmemory"
 	"github.com/go-playground/validator"
@@ -18,11 +19,18 @@ func NewHandler() *Handler {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	rb := handler.NewResponseBuilder(w)
+
 	switch r.Method {
 	case http.MethodPost:
 		h.post(w, r)
+
 	case http.MethodGet:
 		h.get(w, r)
+
+	default:
+		err := errors.New("not found")
+		rb.JsonResponse(http.StatusNotFound, model.NewErrorResponse(err))
 	}
 }
 
@@ -32,26 +40,26 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&keyValue)
 	if err != nil {
-		rb.JsonResponse(http.StatusBadRequest, inmemory.NewErrorResponse(err))
+		rb.JsonResponse(http.StatusBadRequest, model.NewErrorResponse(err))
 		return
 	}
 
 	validate := validator.New()
 	err = validate.Struct(keyValue)
 	if err != nil {
-		rb.JsonResponse(http.StatusBadRequest, inmemory.NewErrorResponse(err))
+		rb.JsonResponse(http.StatusBadRequest, model.NewErrorResponse(err))
 		return
 	}
 
 	db, err := storage.NewStorage()
 	if err != nil {
-		rb.JsonResponse(http.StatusBadRequest, inmemory.NewErrorResponse(err))
+		rb.JsonResponse(http.StatusBadRequest, model.NewErrorResponse(err))
 		return
 	}
 
 	err = db.Set(keyValue.Key, keyValue.Value)
 	if err != nil {
-		rb.JsonResponse(http.StatusBadRequest, inmemory.NewErrorResponse(err))
+		rb.JsonResponse(http.StatusBadRequest, model.NewErrorResponse(err))
 		return
 	}
 
@@ -64,18 +72,18 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 
 	if key == "" {
 		err := errors.New("key not given")
-		rb.JsonResponse(http.StatusBadRequest, inmemory.NewErrorResponse(err))
+		rb.JsonResponse(http.StatusBadRequest, model.NewErrorResponse(err))
 	}
 
 	db, err := storage.NewStorage()
 	if err != nil {
-		rb.JsonResponse(http.StatusBadRequest, inmemory.NewErrorResponse(err))
+		rb.JsonResponse(http.StatusBadRequest, model.NewErrorResponse(err))
 		return
 	}
 
 	value, err := db.Get(key)
 	if err != nil {
-		rb.JsonResponse(http.StatusBadRequest, inmemory.NewErrorResponse(err))
+		rb.JsonResponse(http.StatusBadRequest, model.NewErrorResponse(err))
 		return
 	}
 
