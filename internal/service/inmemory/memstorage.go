@@ -28,11 +28,14 @@ func NewStorage() (MemStore, error) {
 }
 
 func (s *storage) init() error {
-	client := redis.NewClient(&redis.Options{
-		Addr: os.Getenv("REDIS_URL"),
-	})
+	opt, err := redis.ParseURL(os.Getenv("REDIS_URL"))
+	if err != nil {
+		return errors.Wrap(err, "invalid Redis url")
+	}
 
-	_, err := client.Ping(context.Background()).Result()
+	client := redis.NewClient(opt)
+
+	_, err = client.Ping(context.Background()).Result()
 	if err != nil {
 		return errors.Wrap(err, "unable to connect to Redis")
 	}
