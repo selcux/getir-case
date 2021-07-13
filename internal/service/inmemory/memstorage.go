@@ -29,7 +29,7 @@ func NewStorage() (MemStore, error) {
 
 func (s *storage) init() error {
 	client := redis.NewClient(&redis.Options{
-		Addr: os.Getenv("REDIS_URI"),
+		Addr: os.Getenv("REDIS_URL"),
 	})
 
 	_, err := client.Ping(context.Background()).Result()
