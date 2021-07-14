@@ -3,7 +3,6 @@ package persistent
 import (
 	"context"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -34,7 +33,6 @@ func NewDb() (Query, error) {
 
 func (d *db) init() error {
 	uri := os.Getenv("MONGO_URI")
-	log.Debugf("connecting to: %s", uri)
 
 	ctx := context.TODO()
 
@@ -48,11 +46,9 @@ func (d *db) init() error {
 	}
 
 	dbName := os.Getenv("MONGO_DB")
-	log.Debugf("DB Name: %s", dbName)
 	database := client.Database(dbName)
 
 	collectionName := os.Getenv("MONGO_COLLECTION")
-	log.Debugf("collection: %s", collectionName)
 	collection := database.Collection(collectionName)
 
 	d.ctx = ctx
