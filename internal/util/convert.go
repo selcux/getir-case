@@ -2,12 +2,12 @@ package util
 
 import (
 	"getir-case/internal/model/fetch"
-	persistent2 "getir-case/internal/service/persistent"
+	"getir-case/internal/service/persistent"
 	"github.com/pkg/errors"
 	"time"
 )
 
-func RequestToDataQuery(model fetch.Request) (*persistent2.DataQuery, error) {
+func RequestToDataQuery(model *fetch.Request) (*persistent.DataQuery, error) {
 	startDate, err := time.Parse("2006-01-02", model.StartDate)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid date format")
@@ -18,7 +18,11 @@ func RequestToDataQuery(model fetch.Request) (*persistent2.DataQuery, error) {
 		return nil, errors.Wrap(err, "invalid date format")
 	}
 
-	return &persistent2.DataQuery{
+	if startDate.After(endDate) {
+		return nil, errors.New("dates are not in correct chronological order")
+	}
+
+	return &persistent.DataQuery{
 		StartDate: startDate,
 		EndDate:   endDate,
 		MinCount:  model.MinCount,
@@ -26,7 +30,7 @@ func RequestToDataQuery(model fetch.Request) (*persistent2.DataQuery, error) {
 	}, nil
 }
 
-func RecordsToResponses(records []persistent2.DataQueryRecord) []fetch.RecordResponse {
+func RecordsToResponses(records []persistent.DataQueryRecord) []fetch.RecordResponse {
 	responses := make([]fetch.RecordResponse, 0)
 
 	for _, record := range records {

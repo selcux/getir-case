@@ -32,10 +32,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
-	var request fetch.Request
+	request := new(fetch.Request)
 	rb := handler.NewResponseBuilder(w)
 
-	err := json.NewDecoder(r.Body).Decode(&request)
+	err := json.NewDecoder(r.Body).Decode(request)
 	if err != nil {
 		rb.JsonResponse(http.StatusBadRequest, fetch.NewErrorResponse(err))
 		return
